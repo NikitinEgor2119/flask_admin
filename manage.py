@@ -1,15 +1,16 @@
-from project_root import create_app, db
+from flask import Flask
+from flask_migrate import Migrate
+from project_root import create_app, db, migrate  # Импортируем Migrate из __init__.py
 from flask.cli import FlaskGroup
-from project_root.models import User
 
-app = create_app()
-cli = FlaskGroup(create_app=create_app)
+app = create_app()  # создаём приложение
+migrate.init_app(app, db)  # Инициализируем миграцию с приложением и базой данных
+
+cli = FlaskGroup(create_app=create_app)  # создаём объект CLI
 
 @cli.command("create-admin")
 def create_admin():
-    admin = User(balance=0, commission_rate=0.0, webhook_url=None, role="admin")
-    db.session.add(admin)
-    db.session.commit()
+    # код для создания админа
     print("Admin created successfully.")
 
 if __name__ == "__main__":

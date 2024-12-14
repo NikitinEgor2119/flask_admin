@@ -1,8 +1,34 @@
-from flask import request, jsonify
-from . import app, db
+# project_root/routes.py
+from flask import Blueprint, render_template, request, jsonify
 from .models import User, Transaction
+from . import db
 
-@app.route('/create_transaction', methods=['POST'])
+bp = Blueprint('main', __name__)
+
+# Маршрут для страницы дашборда
+@bp.route('/dashboard')
+def dashboard():
+    user_count = User.query.count()
+    transaction_count = Transaction.query.count()
+    total_transactions = db.session.query(db.func.sum(Transaction.amount)).scalar() or 0
+    recent_transactions = Transaction.query.order_by(Transaction.created_at.desc()).limit(5).all()
+    return render_template('dashboard.html', user_count=user_count, transaction_count=transaction_count,
+                           total_transactions=total_transactions, recent_transactions=recent_transactions)
+
+# Маршрут для страницы пользователей
+@bp.route('/users')
+def users():
+    users = User.query.all()
+    return render_template('users.html', users=users)
+
+# Маршрут для страницы транзакций
+@bp.route('/transactions')
+def transactions():
+    transactions = Transaction.query.all()
+    return render_template('transactions.html', transactions=transactions)
+
+# API метод для создания транзакции
+@bp.route('/create_transaction', methods=['POST'])
 def create_transaction():
     data = request.json
     user_id = data.get('user_id')
@@ -19,8 +45,8 @@ def create_transaction():
 
     return jsonify({"message": "Transaction created", "id": transaction.id}), 201
 
-
-@app.route('/cancel_transaction', methods=['POST'])
+# API метод для отмены транзакции
+@bp.route('/cancel_transaction', methods=['POST'])
 def cancel_transaction():
     data = request.json
     transaction_id = data.get('transaction_id')
@@ -34,8 +60,8 @@ def cancel_transaction():
 
     return jsonify({"message": "Transaction cancelled"})
 
-
-@app.route('/check_transaction', methods=['GET'])
+# API метод для проверки статуса транзакции
+@bp.route('/check_transaction', methods=['GET'])
 def check_transaction():
     transaction_id = request.args.get('transaction_id')
     transaction = Transaction.query.get(transaction_id)
@@ -44,3 +70,7 @@ def check_transaction():
         return jsonify({"error": "Transaction not found"}), 404
 
     return jsonify({"id": transaction.id, "status": transaction.status})
+
+
+
+
