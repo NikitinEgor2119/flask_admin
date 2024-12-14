@@ -1,8 +1,9 @@
-from app import app, db
+from project_root import create_app, db
 from flask.cli import FlaskGroup
-from app.models import User
+from project_root.models import User
 
-cli = FlaskGroup(app)
+app = create_app()
+cli = FlaskGroup(create_app=create_app)
 
 @cli.command("create-admin")
 def create_admin():
