@@ -1,23 +1,23 @@
-# project_root/tasks.py
-from celery import Celery
 from datetime import datetime, timedelta
-from . import db
+from . import db, create_app
 from .models import Transaction
-import requests
 
-celery = Celery('tasks', broker='redis://localhost:6379/0')
+app = create_app()
 
+@app.celery.task
+def expire_transactions():
+    with app.app_context():
+        # Время, после которого транзакции истекают
+        expiration_time = datetime.utcnow() - timedelta(minutes=10)
 
-@celery.task
-def check_expired_transactions():
-    expiration_time = datetime.utcnow() - timedelta(minutes=15)
-    transactions = Transaction.query.filter(Transaction.status == 'waiting',
-                                            Transaction.created_at < expiration_time).all()
+        # Поиск транзакций со статусом 'waiting' и временем создания более старым
+        transactions = Transaction.query.filter(
+            Transaction.status == 'waiting',
+            Transaction.created_at < expiration_time
+        ).all()
 
-    for transaction in transactions:
-        transaction.status = 'expired'
+        for transaction in transactions:
+            transaction.status = 'expired'
+            db.session.add(transaction)
+
         db.session.commit()
-
-        # Отправить webhook
-        if transaction.user.webhook_url:
-            requests.post(transaction.user.webhook_url, json={"transaction_id": transaction.id, "status": "expired"})

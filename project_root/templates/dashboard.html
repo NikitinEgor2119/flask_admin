@@ -20,6 +20,11 @@
                 <li>Transaction ID: {{ transaction.id }} | Amount: {{ transaction.amount }} | Status: {{ transaction.status }}</li>
             {% endfor %}
         </ul>
+        <ul>
+            {% for transaction in recent_transactions %}
+                <li>{{ transaction.id }} - {{ transaction.amount }} ({{ transaction.status }})</li>
+            {% endfor %}
+        </ul>
     </div>
 </body>
 </html>

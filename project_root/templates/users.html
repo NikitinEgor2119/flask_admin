@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Users</title>
+</head>
+<body>
+    <h1>Users</h1>
+    <ul>
+        {% for user in users %}
+            <li>ID: {{ user.id }} - Balance: {{ user.balance }} - Role: {{ user.role }}</li>
+        {% endfor %}
+    </ul>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Balance</th>
+                <th>Commission Rate</th>
+                <th>Role</th> <!-- Новое поле -->
+                <th>USDT Wallet</th> <!-- Новое поле -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.id }}</td>
+                <td>{{ user.balance }}</td>
+                <td>{{ user.commission_rate }}</td>
+                <td>{{ user.role }}</td>
+                <td>{{ user.usdt_wallet }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

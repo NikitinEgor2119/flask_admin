@@ -30,20 +30,34 @@ def transactions():
 # API метод для создания транзакции
 @bp.route('/create_transaction', methods=['POST'])
 def create_transaction():
+    # Проверка, что запрос содержит JSON-данные
+    if not request.is_json:
+        return jsonify({"error": "Invalid content type, application/json required"}), 400
+
+    # Извлекаем данные из тела запроса
     data = request.json
     user_id = data.get('user_id')
     amount = data.get('amount')
-    user = User.query.get(user_id)
 
+    # Проверка наличия обязательных полей
+    if not user_id or not amount:
+        return jsonify({"error": "user_id and amount are required"}), 400
+
+    # Найти пользователя
+    user = User.query.get(user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404
 
-    commission = amount * user.commission_rate
+    # Расчет комиссии через метод calculate_commission
+    commission = user.calculate_commission(amount)
+
+    # Создание транзакции
     transaction = Transaction(amount=amount, commission=commission, user_id=user_id)
     db.session.add(transaction)
     db.session.commit()
 
     return jsonify({"message": "Transaction created", "id": transaction.id}), 201
+
 
 # API метод для отмены транзакции
 @bp.route('/cancel_transaction', methods=['POST'])
